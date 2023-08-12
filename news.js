@@ -68,8 +68,18 @@ async function scrapeData(para) {
 scrapeData('/').then(() => {
     scrapeData('/page-2').then(() => {
         scrapeData('/page-3').then(() => {
-            console.log('Extracted Data:', allNews);
-            console.log('Total News:', allNews.length);
+            // console.log('Extracted Data:', allNews);
+            // console.log('Total News:', allNews.length);
+
+            // Remove news posted before yesterday 9 AM
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            yesterday.setHours(9, 0, 0, 0);
+
+            const filteredData = allNews.filter(item => new Date(item.newsTime) > yesterday);
+
+            console.log('Extracted Data:', filteredData);
+            console.log('Total News:', filteredData.length);
         })
     })
 });
