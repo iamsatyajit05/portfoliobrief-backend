@@ -2,60 +2,74 @@
 // Intern: Satyajit
 const puppeteer = require("puppeteer");
 
-async function scrapeData() {
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
+const allNews = [];
 
-    try {
-        await page.goto(`https://www.livemint.com/companies`, { waitUntil: 'networkidle2' });
+async function scrapeData(para) {
+    return new Promise(async resolve => {
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
 
-        const mainSec = await page.$('.mainSec');
-        const myListView = await mainSec.$('#mylistView');
-        const listToStoryElements = await myListView.$$('.listtostory');
+        try {
+            await page.goto(`https://www.livemint.com/companies${para}`, { waitUntil: 'networkidle2' });
 
-        const extractedData = [];
+            const mainSec = await page.$('.mainSec');
+            const myListView = await mainSec.$('#mylistView');
+            const listToStoryElements = await myListView.$$('.listtostory');
 
-        const newsHeadline = await myListView.$('.cardHolder > div > .headline');
-        const newsLinkElement = await newsHeadline.$('a');
-        const newsInnerText = await newsHeadline.evaluate(a => a.innerText);
-        const newsHref = await newsLinkElement.evaluate(a => a.getAttribute('href'));
+            const extractedData = [];
 
-        const newsTimeParent = await myListView.$('.cardHolder > div > article > span > span');
-        const newsUpdatedTime = await newsTimeParent.evaluate(span => span.getAttribute('data-updatedtime'));
+            const newsHeadline = await myListView.$('.cardHolder > div > .headline');
+            const newsLinkElement = await newsHeadline.$('a');
+            const newsInnerText = await newsHeadline.evaluate(a => a.innerText);
+            const newsHref = await newsLinkElement.evaluate(a => a.getAttribute('href'));
 
-        extractedData.push({
-            innerText: newsInnerText,
-            href: "https://www.livemint.com"+newsHref,
-            newsTime: newsUpdatedTime
-        });
+            const newsTimeParent = await myListView.$('.cardHolder > div > article > span > span');
+            const newsUpdatedTime = await newsTimeParent.evaluate(span => span.getAttribute('data-updatedtime'));
 
-        for (const element of listToStoryElements) {
-            const headlineSections = await element.$$('.headlineSec');
+            extractedData.push({
+                innerText: newsInnerText,
+                href: "https://www.livemint.com" + newsHref,
+                newsTime: newsUpdatedTime
+            });
 
-            for (const headlineSection of headlineSections) {
-                const headline = await headlineSection.$('.headline');
-                const linkElement = await headline.$('a');
-                const innerText = await headline.evaluate(el => el.innerText);
-                const href = await linkElement.evaluate(a => a.getAttribute('href'));
+            for (const element of listToStoryElements) {
+                const headlineSections = await element.$$('.headlineSec');
 
-                const timeParent = await headlineSection.$('span > span[data-updatedtime]');
-                const timeAttribute = await timeParent.evaluate(span => span.getAttribute('data-updatedtime'));
+                for (const headlineSection of headlineSections) {
+                    const headline = await headlineSection.$('.headline');
+                    const linkElement = await headline.$('a');
+                    const innerText = await headline.evaluate(el => el.innerText);
+                    const href = await linkElement.evaluate(a => a.getAttribute('href'));
 
-                extractedData.push({
-                    innerText: innerText,
-                    href: "https://www.livemint.com"+href,
-                    newsTime: timeAttribute
-                });
+                    const timeParent = await headlineSection.$('span > span[data-updatedtime]');
+                    const timeAttribute = await timeParent.evaluate(span => span.getAttribute('data-updatedtime'));
+
+                    extractedData.push({
+                        innerText: innerText,
+                        href: "https://www.livemint.com" + href,
+                        newsTime: timeAttribute
+                    });
+                }
             }
-        }
 
-        console.log('Extracted Data:', extractedData);
-        console.log('Total News:', extractedData.length);
-    } catch (error) {
-        console.error('Error:', error);
-    } finally {
-        await browser.close();
-    }
+            // console.log('Extracted Data:', extractedData);
+            // console.log('Total News:', extractedData.length);
+
+            allNews.push(...extractedData)
+        } catch (error) {
+            console.error('Error:', error);
+        } finally {
+            await browser.close();
+        }
+        resolve();
+    });
 }
 
-scrapeData();
+scrapeData('/').then(() => {
+    scrapeData('/page-2').then(() => {
+        scrapeData('/page-3').then(() => {
+            console.log('Extracted Data:', allNews);
+            console.log('Total News:', allNews.length);
+        })
+    })
+});
