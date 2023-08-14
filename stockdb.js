@@ -1,36 +1,34 @@
-
-const { MongoClient } = require('mongodb');
-
-const mongoose = require('mongoose'); // Import mongoose correctly
-const mongoDB = require('./mongodb');
-const { Schema, model } = mongoose; // Destructure Schema and model from mongoose
+const { ObjectId } = require('mongodb');
+const mongoose = require('mongoose');
 const MONGODB_URI = process.env.MONGODB_URI;
 
-//mongoDB().catch(err => console.error({ error: "ERROR" })); // Use console.error instead of resizeBy.json
 mongoose.connect(MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-  })
+})
     .then(() => {
-      console.log('Connected to MongoDB');
+        console.log('Connected to MongoDB');
     })
     .catch(error => {
-      console.error('Error connecting to MongoDB:', error);
+        console.error('Error connecting to MongoDB:', error);
     });
 
-const stocklistSchema = new Schema({
-    selectedStocks: [String]
+
+const stocklistSchema = new mongoose.Schema({
+    selectedStocks: [String],
+    userEmail: String,
 });
 
-const Stocks = model('stocklist', stocklistSchema); 
+const Stocks = mongoose.model('stocklist', stocklistSchema);
 
-async function stockSaveToDB(stocksList) {
+async function stockSaveToDB(stocksList, email) {
     try {
         const newStockList = new Stocks({
             selectedStocks: stocksList,
+            userEmail: email,
         });
 
-        const data = await Stocks.create(newStockList);
+        const data = await newStockList.save();
 
         return { status: true, user: data };
     } catch (err) {

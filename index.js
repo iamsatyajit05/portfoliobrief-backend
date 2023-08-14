@@ -1,5 +1,5 @@
 require('dotenv').config();
-
+const mongoose = require('mongoose');
 const express = require('express');
 const app = express();
 const port = 5000;
@@ -14,15 +14,20 @@ app.get('/gm', (req, res) => {
 });
 
 app.post('/api/addstocks', async (req, res) => {
-  const { stocks } = req.body;
+    const { stocks , userEmail } = req.body;
+    
+    try {
+        const result = await stockSaveToDB(stocks, userEmail );
 
-  try {
-      await stockSaveToDB(stocks);
-      res.status(200).json({ message: 'Function executed and data saved' });
-  } catch (error) {
-    console.error('An error occurred:', error);
-    res.status(500).json({ message: 'Internal server error' });
-  }
+        if (result.status) {
+            res.status(200).json({ message: 'Function executed and data saved', user: result.user });
+        } else {
+            res.status(404).json({ message: 'User not found' });
+        }
+    } catch (error) {
+        console.error('An error occurred:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
 });
 
 app.listen(port, () => {
