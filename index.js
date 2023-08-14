@@ -14,7 +14,7 @@ app.get('/gm', (req, res) => {
 });
 
 app.post('/api/addstocks', async (req, res) => {
-    const { stocks , userEmail } = req.body;
+const { stocks , userEmail } = req.body;
     
     try {
         const result = await stockSaveToDB(stocks, userEmail );

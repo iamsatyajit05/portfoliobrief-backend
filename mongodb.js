@@ -23,4 +23,4 @@ if (process.env.NODE_ENV === 'development') {
   clientPromise = client.connect();
 }
 
-module.exports = clientPromise; 
+module.exports = {client, clientPromise}; 

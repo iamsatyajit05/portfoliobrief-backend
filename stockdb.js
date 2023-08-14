@@ -1,5 +1,7 @@
+require('dotenv').config();
 const { ObjectId } = require('mongodb');
 const mongoose = require('mongoose');
+const { client } = require('./mongodb')
 const MONGODB_URI = process.env.MONGODB_URI;
 
 mongoose.connect(MONGODB_URI, {
@@ -21,19 +23,79 @@ const stocklistSchema = new mongoose.Schema({
 
 const Stocks = mongoose.model('stocklist', stocklistSchema);
 
+
+async function fetchEmail(userEmail) {
+    const dbName = 'test';
+    const session = client.startSession();
+    const db = client.db(dbName);
+
+    // Your data fetching code here
+    const collection = db.collection('stocklists');
+
+    const email = userEmail;
+
+    const documents = await collection.find({ userEmail }).toArray();
+    console.log('Fetched documents:', documents);
+    return documents;
+}
+
+
+const { MongoClient } = require('mongodb');
+
+async function updateField(documentId, updatedValue) {
+    const url = MONGODB_URI; // Replace with your MongoDB server URL
+const dbName = 'test';       // Replace with your database name
+const collectionName = 'stocklists'; // Replace with your collection name
+
+const client = new MongoClient(url);
+
+  try {
+    await client.connect();
+    console.log('Connected successfully to server');
+
+    const db = client.db(dbName);
+    const collection = db.collection(collectionName);
+
+    const filter = { _id: documentId }; // Replace with the actual field to identify the document
+    console.log(filter);
+    const update = { $set: { selectedStocks: updatedValue } }; // Replace fieldName with the actual field name
+    console.log(filter);
+
+    const result = await collection.updateOne(filter, update);
+    console.log(result);
+
+    console.log(`${result.modifiedCount} document(s) updated.`);
+    return { status: true };
+  } catch (error) {
+    console.error('Error:', error);
+  } finally {
+    client.close();
+  }
+}
+
+
+
+
 async function stockSaveToDB(stocksList, email) {
-    try {
-        const newStockList = new Stocks({
-            selectedStocks: stocksList,
-            userEmail: email,
-        });
-
-        const data = await newStockList.save();
-
-        return { status: true, user: data };
-    } catch (err) {
-        console.error('An error occurred:', err);
-        return { status: false, error: err.message };
+    const record = await fetchEmail(email)
+    if(record[0] && record[0].userEmail == email){
+       console.log("Update")
+       const response = await updateField(record[0]._id, stocksList)
+       return response;
+    } else {
+        try {
+            const newStockList = new Stocks({
+                selectedStocks: stocksList,
+                userEmail: email,
+            });
+    
+            const data = await newStockList.save();
+    
+            return { status: true, user: data };
+        } catch (err) {
+            console.error('An error occurred:', err);
+            return { status: false, error: err.message };
+        }
     }
 }
 
