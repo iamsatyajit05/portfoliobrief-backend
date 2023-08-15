@@ -5,6 +5,7 @@ const puppeteer = require("puppeteer");
 const { ObjectId } = require('mongodb');
 const mongoose = require('mongoose');
 const MONGODB_URI = process.env.MONGODB_URI;
+const companies = require('./companyList');
 
 const allNews = [];
 
@@ -90,7 +91,8 @@ async function saveToDB(newsArr) {
                     const newsItem = new News({
                         innerText: element.innerText,
                         href: element.href,
-                        newsTime: element.newsTime
+                        newsTime: element.newsTime,
+                        tag: element.tag
                     });
         
                     const data = await newsItem.save();
@@ -120,10 +122,16 @@ scrapeData('/').then(() => {
 
             const filteredData = allNews.filter(item => new Date(item.newsTime) > yesterday);
 
+            // Add tag to news
+            filteredData.forEach(news => {
+                const matchingCompany = companies.find(company => news.innerText.includes(company));
+                news.tag = matchingCompany ? matchingCompany : '';
+            });
+            
             console.log('Extracted Data:', filteredData);
             console.log('Total News:', filteredData.length);
 
-            saveToDB(filteredData);
+            saveToDB(finalNewsList);
         })
     })
 });
