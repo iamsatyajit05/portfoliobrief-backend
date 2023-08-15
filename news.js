@@ -1,6 +1,10 @@
 // Senior Developer: ChatGPT
 // Intern: Satyajit
+require('dotenv').config();
 const puppeteer = require("puppeteer");
+const { ObjectId } = require('mongodb');
+const mongoose = require('mongoose');
+const MONGODB_URI = process.env.MONGODB_URI;
 
 const allNews = [];
 
@@ -65,6 +69,44 @@ async function scrapeData(para) {
     });
 }
 
+async function saveToDB(newsArr) {    
+    mongoose.connect(MONGODB_URI, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    })
+        .then(async () => {
+            console.log('Connected to MongoDB');
+
+            const newsSchema = new mongoose.Schema({
+                innerText: String,
+                href: String,
+                newsTime: Date
+            });
+            
+            const News = mongoose.model('news', newsSchema);
+            
+            for (const element of newsArr) {
+                try {
+                    const newsItem = new News({
+                        innerText: element.innerText,
+                        href: element.href,
+                        newsTime: element.newsTime
+                    });
+        
+                    const data = await newsItem.save();
+        
+                    // return { status: true, user: data };
+                } catch (err) {
+                    console.error('An error occurred:', err);
+                    // return { status: false, error: err.message };
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error connecting to MongoDB:', error);
+        });
+}
+
 scrapeData('/').then(() => {
     scrapeData('/page-2').then(() => {
         scrapeData('/page-3').then(() => {
@@ -80,6 +122,8 @@ scrapeData('/').then(() => {
 
             console.log('Extracted Data:', filteredData);
             console.log('Total News:', filteredData.length);
+
+            saveToDB(filteredData);
         })
     })
 });
