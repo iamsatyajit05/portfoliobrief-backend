@@ -6,6 +6,7 @@ const { ObjectId } = require('mongodb');
 const mongoose = require('mongoose');
 const MONGODB_URI = process.env.MONGODB_URI;
 const companies = require('./companyList');
+const { client } = require('./mongodb')
 
 const allNews = [];
 
@@ -70,33 +71,43 @@ async function scrapeData(para) {
     });
 }
 
-async function saveToDB(newsArr) {    
+async function saveToDB(newsArr) {
     mongoose.connect(MONGODB_URI, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
     })
         .then(async () => {
+            const database = client.db('test');
+            const collection = database.collection('news');
             console.log('Connected to MongoDB');
 
             const newsSchema = new mongoose.Schema({
                 innerText: String,
                 href: String,
-                newsTime: Date
+                newsTime: Date,
+                tag: String
             });
-            
+
             const News = mongoose.model('news', newsSchema);
-            
+
             for (const element of newsArr) {
                 try {
-                    const newsItem = new News({
-                        innerText: element.innerText,
-                        href: element.href,
-                        newsTime: element.newsTime,
-                        tag: element.tag
-                    });
-        
-                    const data = await newsItem.save();
-        
+                    const existingNews = await collection.findOne({ innerText: element.innerText });
+
+                    if (!existingNews) {
+                        const newsItem = new News({
+                            innerText: element.innerText,
+                            href: element.href,
+                            newsTime: element.newsTime,
+                            tag: element.tag
+                        });
+
+                        const data = await newsItem.save();
+                        console.log('News article added successfully.');
+                    } else {
+                        console.log('News article already exists. Skipping.');
+                    }
+
                     // return { status: true, user: data };
                 } catch (err) {
                     console.error('An error occurred:', err);
@@ -127,11 +138,11 @@ scrapeData('/').then(() => {
                 const matchingCompany = companies.find(company => news.innerText.includes(company));
                 news.tag = matchingCompany ? matchingCompany : '';
             });
-            
+
             console.log('Extracted Data:', filteredData);
             console.log('Total News:', filteredData.length);
 
-            saveToDB(finalNewsList);
+            saveToDB(filteredData);
         })
     })
 });
