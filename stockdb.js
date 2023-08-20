@@ -34,10 +34,7 @@ async function fetchStocklist(userEmail) {
 
         const db = client.db(dbName);
         const collection = db.collection(collectionName);
-        console.log(5);
         const documents = await collection.find({ userEmail }).toArray();
-        console.log(6);
-        console.log('Fetched documents:', documents);
         return documents;
     } catch (error) {
         console.error('Error:', error);
@@ -46,18 +43,20 @@ async function fetchStocklist(userEmail) {
     }
 }
 async function updateStocks(email) {
-    console.log("updateStocks calling");
-    console.log(1);
     try {
         const documents = await fetchStocklist(email);
+        if(typeof documents === "undefined") {
+            return [];
+        }
+
         const listedStocks = [];
-        console.log("Documents from main function", documents);
+        
         for (let i = 0; i < documents.length; i++) {
             if (documents[i].userEmail === email) {
                 listedStocks.push(documents[i]);
             }
         }
-        console.log("Stocks:", listedStocks);
+        
         return listedStocks;
     }
     catch (error) {
@@ -99,12 +98,9 @@ async function updateField(documentId, updatedValue) {
         const collection = db.collection(collectionName);
 
         const filter = { _id: documentId }; // Replace with the actual field to identify the document
-        console.log(filter);
         const update = { $set: { selectedStocks: updatedValue } }; // Replace fieldName with the actual field name
-        console.log(filter);
 
         const result = await collection.updateOne(filter, update);
-        console.log(result);
 
         console.log(`${result.modifiedCount} document(s) updated.`);
         return { status: true };
@@ -116,10 +112,8 @@ async function updateField(documentId, updatedValue) {
 }
 
 async function stockSaveToDB(stocksList, email) {
-    console.log("stockdb function calling");
     const record = await fetchEmail(email)
     if (record[0] && record[0].userEmail == email) {
-        console.log("Update")
         const response = await updateField(record[0]._id, stocksList)
         return response;
     } else {

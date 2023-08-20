@@ -33,14 +33,11 @@ const { stocks , userEmail } = req.body;
 
 app.post('/api/updatestocks',async(req,res)=>{
     const {email}=req.body;
-    console.log(req.body);
-    console.log("Email from parent:", email);
     
     try{ 
         const listedStocks = await updateStocks(email);
 
         if (listedStocks) {
-            console.log("Stocks in parent", listedStocks);
             res.status(200).json({ status: true, message: 'Stocks listed successfully', stocks: listedStocks[0].selectedStocks });
         } 
         else {
