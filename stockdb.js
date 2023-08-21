@@ -133,9 +133,34 @@ async function stockSaveToDB(stocksList, email) {
     }
 }
 
+async function fetchedNews() {
+    const url = MONGODB_URI;
+    const dbName = 'test';
+    const collectionName = 'new.s';
+    const client = new MongoClient(url);
+
+    try {
+        await client.connect();
+        console.log('Connected successfully to server');
+
+        const db = client.db(dbName);
+        const collection = db.collection(collectionName);
+
+        const documents = await collection.find({}).toArray();
+
+        const filteredData = await collection.find({}).toArray();;
+        // console.log('Fetched documents:', filteredData);
+        return filteredData;
+    } catch (error) {
+        console.error('Error:', error);
+    } finally {
+        client.close();
+    }
+}
+
 async function savePreference({ recieveNewsText, newsTypeText, email }) {
     const client = new MongoClient(MONGODB_URI);
-    const dbName = 'test'; 
+    const dbName = 'test';
     const collectionName = 'stocklists';
 
     try {
@@ -164,4 +189,4 @@ async function savePreference({ recieveNewsText, newsTypeText, email }) {
     }
 }
 
-module.exports = { stockSaveToDB, updateStocks, savePreference };
+module.exports = { stockSaveToDB, updateStocks, savePreference, fetchedNews };
