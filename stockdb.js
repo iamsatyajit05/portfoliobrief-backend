@@ -2,6 +2,7 @@ require('dotenv').config();
 const { ObjectId } = require('mongodb');
 const mongoose = require('mongoose');
 const { client } = require('./mongodb')
+const { MongoClient } = require('mongodb');
 const MONGODB_URI = process.env.MONGODB_URI;
 
 mongoose.connect(MONGODB_URI, {
@@ -45,18 +46,18 @@ async function fetchStocklist(userEmail) {
 async function updateStocks(email) {
     try {
         const documents = await fetchStocklist(email);
-        if(typeof documents === "undefined") {
+        if (typeof documents === "undefined") {
             return [];
         }
 
         const listedStocks = [];
-        
+
         for (let i = 0; i < documents.length; i++) {
             if (documents[i].userEmail === email) {
                 listedStocks.push(documents[i]);
             }
         }
-        
+
         return listedStocks;
     }
     catch (error) {
@@ -81,7 +82,6 @@ async function fetchEmail(userEmail) {
     return documents;
 }
 
-const { MongoClient } = require('mongodb');
 
 async function updateField(documentId, updatedValue) {
     const url = MONGODB_URI; // Replace with your MongoDB server URL
@@ -133,4 +133,35 @@ async function stockSaveToDB(stocksList, email) {
     }
 }
 
-module.exports = {stockSaveToDB, updateStocks};
+async function savePreference({ recieveNewsText, newsTypeText, email }) {
+    const client = new MongoClient(MONGODB_URI);
+    const dbName = 'test'; 
+    const collectionName = 'stocklists';
+
+    try {
+        const record = await fetchEmail(email)
+        if (record[0] && record[0].userEmail == email) {
+
+            await client.connect();
+            console.log('Connected successfully to server');
+
+            const db = client.db(dbName);
+            const collection = db.collection(collectionName);
+
+            const filter = { _id: record[0]._id };
+            const update = { $set: { recieveNews: recieveNewsText, newsType: newsTypeText } };
+
+            const result = await collection.updateOne(filter, update);
+
+            console.log(`${result.modifiedCount} document(s) updated.`);
+        }
+
+        return { status: true, message: 'saved done' };
+    } catch (error) {
+        return { status: false, message: error };
+    } finally {
+        client.close();
+    }
+}
+
+module.exports = { stockSaveToDB, updateStocks, savePreference };
