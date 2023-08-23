@@ -26,8 +26,8 @@ const Stocks = mongoose.model('stocklist', stocklistSchema);
 
 async function fetchStocklist(userEmail) {
     const client = new MongoClient(MONGODB_URI);
-    const dbName = 'test';       // Replace with your database name
-    const collectionName = 'stocklists'; // Replace with your collection name
+    const dbName = 'test';
+    const collectionName = 'stocklists';
 
     try {
         await client.connect();
@@ -84,11 +84,10 @@ async function fetchEmail(userEmail) {
 
 
 async function updateField(documentId, updatedValue) {
-    const url = MONGODB_URI; // Replace with your MongoDB server URL
-    const dbName = 'test';       // Replace with your database name
-    const collectionName = 'stocklists'; // Replace with your collection name
+    const dbName = 'test';
+    const collectionName = 'stocklists';
 
-    const client = new MongoClient(url);
+    const client = new MongoClient(MONGODB_URI);
 
     try {
         await client.connect();
@@ -97,8 +96,8 @@ async function updateField(documentId, updatedValue) {
         const db = client.db(dbName);
         const collection = db.collection(collectionName);
 
-        const filter = { _id: documentId }; // Replace with the actual field to identify the document
-        const update = { $set: { selectedStocks: updatedValue } }; // Replace fieldName with the actual field name
+        const filter = { _id: documentId };
+        const update = { $set: { selectedStocks: updatedValue } };
 
         const result = await collection.updateOne(filter, update);
 
@@ -112,24 +111,39 @@ async function updateField(documentId, updatedValue) {
 }
 
 async function stockSaveToDB(stocksList, email) {
-    const record = await fetchEmail(email)
-    if (record[0] && record[0].userEmail == email) {
-        const response = await updateField(record[0]._id, stocksList)
-        return response;
-    } else {
-        try {
-            const newStockList = new Stocks({
+    const dbName = 'test';
+    const collectionName = 'stocklists';
+
+    const client = new MongoClient(MONGODB_URI);
+
+    try {
+        await client.connect();
+        console.log('Connected successfully to server');
+
+        const db = client.db(dbName);
+        const collection = db.collection(collectionName);
+
+        const record = await fetchEmail(email);
+
+        if (record[0] && record[0].userEmail === email) {
+            const response = await updateField(record[0]._id, stocksList);
+            return response;
+        } else {
+            const newStockList = {
                 selectedStocks: stocksList,
                 userEmail: email,
-            });
+            };
 
-            const data = await newStockList.save();
+            const result = await collection.insertOne(newStockList);
 
-            return { status: true, user: data };
-        } catch (err) {
-            console.error('An error occurred:', err);
-            return { status: false, error: err.message };
+            console.log(`${result.insertedCount} document(s) inserted.`);
+            return { status: true, user: result.ops[0] };
         }
+    } catch (err) {
+        console.error('An error occurred:', err);
+        return { status: false, error: err.message };
+    } finally {
+        client.close();
     }
 }
 
@@ -158,23 +172,24 @@ async function fetchedNews() {
     }
 }
 
-async function savePreference({ recieveNewsText, newsTypeText, email }) {
-    const client = new MongoClient(MONGODB_URI);
+async function savePreference({ receiveNewsText, newsTypeText, email }) {
     const dbName = 'test';
     const collectionName = 'stocklists';
 
+    const client = new MongoClient(MONGODB_URI);
+
     try {
-        const record = await fetchEmail(email)
-        if (record[0] && record[0].userEmail == email) {
+        await client.connect();
+        console.log('Connected successfully to server');
 
-            await client.connect();
-            console.log('Connected successfully to server');
+        const db = client.db(dbName);
+        const collection = db.collection(collectionName);
 
-            const db = client.db(dbName);
-            const collection = db.collection(collectionName);
+        const record = await fetchEmail(email);
 
+        if (record[0] && record[0].userEmail === email) {
             const filter = { _id: record[0]._id };
-            const update = { $set: { recieveNews: recieveNewsText, newsType: newsTypeText } };
+            const update = { $set: { recieveNews: receiveNewsText, newsType: newsTypeText } };
 
             const result = await collection.updateOne(filter, update);
 

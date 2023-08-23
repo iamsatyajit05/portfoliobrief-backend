@@ -92,7 +92,6 @@ app.post('/api/usernews', async (req, res) => {
 });
 
 app.post('/api/fetchnews', async (req, res) => {
-    console.log("2");
     try {
         // Assuming you have a function named fetchedNews that fetches news data
         const fetchedNewsData = await fetchedNews(); // Renamed variable to avoid confusion
