@@ -1,9 +1,5 @@
 require('dotenv').config();
-const { ObjectId } = require('mongodb');
-const mongoose = require('mongoose');
-// const { client } = require('./mongodb');
-const MONGODB_URI = process.env.MONGODB_URI;
-const { MongoClient } = require('mongodb');
+const { mongoDBInstance } = require('./mongodb');
 const { createTransport } = require('nodemailer');
 
 function structureEmail(data) {
@@ -23,40 +19,13 @@ function structureEmail(data) {
     return email;
 }
 
-function sendEmail(data) {
-    const transporter = createTransport({
-        host: process.env.EMAIL_HOST,
-        port: process.env.EMAIL_PORT,
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS,
-        },
-    });
-
-    const mailOptions = {
-        from: 'thisissatyajit05@gmail.com',
-        to: data.to,
-        subject: data.subject,
-        html: data.html
-    };
-
-    transporter.sendMail(mailOptions, function (error, info) {
-        if (error) {
-            console.log('Error:', error);
-        } else {
-            console.log('Email sent: ' + info.response);
-        }
-    });
-}
-
 async function fetchNews() {
-    const client = new MongoClient(MONGODB_URI);
-    const dbName = 'test';
-    const collectionName = 'news';
-
     try {
-        await client.connect();
+        const client = await mongoDBInstance.getClient();
         console.log('Connected successfully to server');
+
+        const dbName = 'test';
+        const collectionName = 'news';
 
         const db = client.db(dbName);
         const collection = db.collection(collectionName);
@@ -68,34 +37,27 @@ async function fetchNews() {
         yesterday.setHours(9, 0, 0, 0);
 
         const filteredData = documents.filter(item => new Date(item.newsTime) > yesterday);
-        //       console.log('Fetched documents:', filteredData);
         return filteredData;
     } catch (error) {
         console.error('Error:', error);
-    } finally {
-        client.close();
     }
 }
 
 async function fetchStocklist() {
-    const client = new MongoClient(MONGODB_URI);
-    const dbName = 'test';
-    const collectionName = 'stocklists';
-
     try {
-        await client.connect();
+        const client = await mongoDBInstance.getClient();
         console.log('Connected successfully to server');
+
+        const dbName = 'test';
+        const collectionName = 'stocklists';
 
         const db = client.db(dbName);
         const collection = db.collection(collectionName);
 
         const documents = await collection.find({}).toArray();
-        // console.log('Fetched documents:', documents);
         return documents;
     } catch (error) {
         console.error('Error:', error);
-    } finally {
-        client.close();
     }
 }
 
@@ -127,6 +89,36 @@ async function sendData() {
     }
     catch(err) {
         console.log("Error:", err);
+    }
+}
+
+async function sendEmail(data) {
+    try {
+        const transporter = createTransport({
+            host: process.env.EMAIL_HOST,
+            port: process.env.EMAIL_PORT,
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS,
+            },
+        });
+
+        const mailOptions = {
+            from: 'thisissatyajit05@gmail.com',
+            to: data.to,
+            subject: data.subject,
+            html: data.html
+        };
+
+        transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
+                console.log('Error:', error);
+            } else {
+                console.log('Email sent: ' + info.response);
+            }
+        });
+    } catch (error) {
+        console.error('Error:', error);
     }
 }
 

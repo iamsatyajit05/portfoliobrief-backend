@@ -79,7 +79,6 @@ async function saveToDB(newsArr) {
         .then(async () => {
             const database = client.db('test');
             const collection = database.collection('news');
-            console.log('Connected to MongoDB');
 
             const newsSchema = new mongoose.Schema({
                 innerText: String,

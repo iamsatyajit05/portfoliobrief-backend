@@ -58,12 +58,10 @@ app.post('/api/savepreference', async (req, res) => {
         const response = await savePreference({ recieveNewsText, newsTypeText, email })
 
         if (response.status) {
-            console.log("Saved");
+            res.status(200).json({ message: 'Data saved successfully' });
         } else {
             throw response.message;
         }
-
-        res.status(200).json({ message: 'Data saved successfully' });
     } catch (error) {
         console.error("Error:", error);
         res.status(500).json({ message: 'An error occurred while saving data' });
@@ -72,14 +70,11 @@ app.post('/api/savepreference', async (req, res) => {
 
 app.post('/api/usernews', async (req, res) => {
     const { email } = req.body;
-    console.log(req.body);
-    console.log("Email from parent:", email);
 
     try {
         const news = await userNews(email);
-        console.log(news);
+        
         if (news) {
-            console.log("News in parent", news);
             res.status(200).json({ status: true, message: 'Stocks listed successfully', news: news });
         }
         else {
@@ -93,13 +88,9 @@ app.post('/api/usernews', async (req, res) => {
 
 app.post('/api/fetchnews', async (req, res) => {
     try {
-        // Assuming you have a function named fetchedNews that fetches news data
-        const fetchedNewsData = await fetchedNews(); // Renamed variable to avoid confusion
-        console.log(3);
-        //console.log("fetchednews", fetchedNewsData);
+        const fetchedNewsData = await fetchedNews();
 
         if (fetchedNewsData) {
-            console.log("News in parent");
             res.status(200).json({ status: true, message: 'News listed successfully', news: fetchedNewsData });
         } else {
             res.status(404).json({ message: 'News not found' });
