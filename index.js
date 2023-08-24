@@ -8,7 +8,7 @@ const port = 5000;
 app.use(express.json());
 app.use(cors());
 
-const { stockSaveToDB, updateStocks, savePreference, fetchedNews } = require('./stockdb');
+const { stockSaveToDB, updateStocks, savePreference, fetchedNews, adduser } = require('./stockdb');
 const { userNews } = require('./sendResNews');
 
 // dedicated to web3 world
@@ -51,6 +51,23 @@ app.post('/api/updatestocks', async (req, res) => {
     }
 });
 
+app.post('/api/adduser', async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        const test = await adduser(email);
+        if (test) {
+            res.status(200).json({ status: true, message: 'Stocks listed successfully', userexist: test });
+        }
+        else {
+            res.status(404).json({ message: 'User not found' });
+        }
+    } catch (error) {
+        console.error('An error occurred:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
 app.post('/api/savepreference', async (req, res) => {
     try {
         const { recieveNewsText, newsTypeText, email } = req.body;
@@ -73,7 +90,7 @@ app.post('/api/usernews', async (req, res) => {
 
     try {
         const news = await userNews(email);
-        
+
         if (news) {
             res.status(200).json({ status: true, message: 'Stocks listed successfully', news: news });
         }
