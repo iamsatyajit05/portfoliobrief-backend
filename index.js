@@ -1,5 +1,4 @@
 require('dotenv').config();
-const mongoose = require('mongoose');
 const cors = require('cors');
 const express = require('express');
 const app = express();
@@ -40,7 +39,11 @@ app.post('/api/updatestocks', async (req, res) => {
         const listedStocks = await updateStocks(email);
 
         if (listedStocks) {
-            res.status(200).json({ status: true, message: 'Stocks listed successfully', stocks: listedStocks[0].selectedStocks });
+            if (typeof listedStocks[0] === 'undefined') {
+                res.status(200).json({ status: true, message: 'Stocks listed successfully', stocks: [] });
+            } else {
+                res.status(200).json({ status: true, message: 'Stocks listed successfully', stocks: listedStocks[0].selectedStocks });
+            }
         }
         else {
             res.status(404).json({ message: 'User not found' });
@@ -73,16 +76,17 @@ app.post('/api/usernews', async (req, res) => {
 
     try {
         const news = await userNews(email);
-        
-        if (news) {
+
+        if (news.length > 0) {
             res.status(200).json({ status: true, message: 'Stocks listed successfully', news: news });
-        }
-        else {
-            res.status(404).json({ message: 'User not found' });
+        } else if (news.length === 0) {
+            res.status(404).json({ status: false, message: 'Empty news' });
+        } else {
+            res.status(404).json({ status: false, message: 'User not found' });
         }
     } catch (error) {
         console.error('An error occurred:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        res.status(500).json({ status: false, message: 'Internal server error' });
     }
 });
 

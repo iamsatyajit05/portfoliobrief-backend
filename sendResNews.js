@@ -43,7 +43,7 @@ async function userNews(email) {
     try {
         const documents = await fetchStocklist(email);
         const news = await fetchNews();
-        var listedStocks;
+        var listedStocks = [];
 
         for (let i = 0; i < documents.length; i++) {
             if (documents[i].userEmail == email) {
