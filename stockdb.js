@@ -18,6 +18,8 @@ mongoose.connect(MONGODB_URI, {
 const stocklistSchema = new mongoose.Schema({
     selectedStocks: [String],
     userEmail: String,
+    newsType: String,
+    recieveNews: Boolean,
 });
 
 const Stocks = mongoose.model('stocklist', stocklistSchema);
@@ -168,11 +170,40 @@ async function savePreference({ recieveNewsText, newsTypeText, email }) {
 
             const result = await collection.updateOne(filter, update);
         }
-
         return { status: true, message: 'saved done' };
     } catch (error) {
         return { status: false, message: error };
     }
 }
 
-module.exports = { stockSaveToDB, updateStocks, savePreference, fetchedNews };
+async function adduser(email) {
+    const record = await fetchEmail(email)
+    if (record[0] && record[0].userEmail == email) {
+        const response = true;
+        return response;
+    } else {
+        const client = new MongoClient(MONGODB_URI);
+
+        try {
+            await client.connect();
+            console.log('Connected successfully to server');
+
+            const newStockList = new Stocks({
+                selectedStocks: [],
+                userEmail: email,
+                newsType: "Only News",
+                recieveNews: true,
+
+            });
+
+            const data = await newStockList.save();
+
+            return { status: true, user: data };
+        } catch (err) {
+            console.error('An error occurred:', err);
+            return { status: false, error: err.message };
+        }
+    }
+}
+
+module.exports = { stockSaveToDB, updateStocks, savePreference, fetchedNews, adduser };
