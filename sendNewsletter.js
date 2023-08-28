@@ -19,13 +19,22 @@ function structureEmail(data) {
 
     for (let i = 0; i < data.news.length; i++) {
         const news = `
-        <div class="title-image" style="margin: 0; padding: 0; font-family: Arial, sans-serif; display: flex; gap: 4px; padding-top: 18px;">
+        <div style="margin: 0; padding: 0; font-family: Arial, sans-serif; display: flex; gap: 4px; padding-top: 18px;">
                 <div class="news" style="margin: 0; padding: 0; font-family: Arial, sans-serif; text-align: left; width: auto;">
         <a href="${data.news[i].href}" target="_blank">${data.news[i].innerText}</a><span class="time" style="margin: 0; padding: 0; font-family: Arial, sans-serif; font-size: 14px;">${formatTime(data.news[i].newsTime)}</span> • <span class="tag" style="margin: 0; padding: 0; font-family: Arial, sans-serif; font-size: 14px;">${data.news[i].tag}</span>
         </div>
-        <img class="image" src="${data.news[i].imgUrl}" alt="News Image" style="margin: 0; padding: 0; font-family: Arial, sans-serif; width: 80px; height: 80px;" width="80" height="80"></div>
+        <img src="${data.news[i].imgUrl}" alt="News Image" style="margin: 0; padding: 0; font-family: Arial, sans-serif; width: 80px; height: 80px;" width="80" height="80"></div>
         `;
         newsContent += news;
+    }
+
+    if(data.news.length === 0) {
+        newsContent = `
+        <div  style="margin: 0; padding: 0; font-family: Arial, sans-serif; padding-top: 18px">
+            <p>404_news.png, sorry there was no news update for your selected stocks.</p>
+            <p style="margin-top: 16px;">We are working hard so you don't get message like this again :)</p>
+    </div>
+    `
     }
 
     const email = {
@@ -52,7 +61,7 @@ function structureEmail(data) {
     
         <div style="margin: 0; font-family: Arial, sans-serif; padding: 40px 20px;">
             <p style="margin: 0; padding: 0; font-family: Arial, sans-serif;">Thank you for taking the time to read this newsletter.</p>
-            <p style="margin: 0; padding: 0; font-family: Arial, sans-serif; margin-top: 15px;">once_again_asking.png (lol) to give your feedback how we can imrpove are queality of newsletter to make your day more better.</p>
+            <p style="margin: 0; padding: 0; font-family: Arial, sans-serif; margin-top: 16px;">once_again_asking.png (lol) to give your feedback how we can imrpove are queality of newsletter to make your day more better.</p>
         </div>
     
         <div style="margin: 0; font-family: Arial, sans-serif; padding: 20px; text-align: center; background-color: rgba(6, 182, 212); color: #fff;">
