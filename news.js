@@ -2,11 +2,10 @@
 // Intern: Satyajit
 require('dotenv').config();
 const puppeteer = require("puppeteer");
-const { ObjectId } = require('mongodb');
 const mongoose = require('mongoose');
 const MONGODB_URI = process.env.MONGODB_URI;
-const companies = require('./companyList');
-const { client } = require('./mongodb')
+const companies = require('./companyList'); const { mongoDBInstance } = require('./mongodb');
+
 
 const allNews = [];
 
@@ -72,51 +71,48 @@ async function scrapeData(para) {
 }
 
 async function saveToDB(newsArr) {
-    mongoose.connect(MONGODB_URI, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-    })
-        .then(async () => {
-            const database = client.db('test');
-            const collection = database.collection('news');
+    try {
+        const client = await mongoDBInstance.getClient();
+        const database = client.db('test');
+        const collection = database.collection('news');
 
-            const newsSchema = new mongoose.Schema({
-                innerText: String,
-                href: String,
-                newsTime: Date,
-                tag: String
-            });
-
-            const News = mongoose.model('news', newsSchema);
-
-            for (const element of newsArr) {
-                try {
-                    const existingNews = await collection.findOne({ innerText: element.innerText });
-
-                    if (!existingNews) {
-                        const newsItem = new News({
-                            innerText: element.innerText,
-                            href: element.href,
-                            newsTime: element.newsTime,
-                            tag: element.tag
-                        });
-
-                        const data = await newsItem.save();
-                        console.log('News article added successfully.');
-                    } else {
-                        console.log('News article already exists. Skipping.');
-                    }
-
-                    // return { status: true, user: data };
-                } catch (err) {
-                    console.error('An error occurred:', err);
-                    // return { status: false, error: err.message };
-                }
-            }
-        })
-        .catch(error => {
-            console.error('Error connecting to MongoDB:', error);
+        const newsSchema = new mongoose.Schema({
+            innerText: String,
+            href: String,
+            newsTime: Date,
+            tag: String
         });
+
+        const News = mongoose.model('news', newsSchema);
+
+        for (const element of newsArr) {
+            try {
+                const existingNews = await collection.findOne({ innerText: element.innerText });
+
+                if (!existingNews) {
+                    const newsItem = new News({
+                        innerText: element.innerText,
+                        href: element.href,
+                        newsTime: element.newsTime,
+                        tag: element.tag
+                    });
+
+                    const data = await newsItem.save();
+                    console.log('News article added successfully.');
+                } else {
+                    console.log('News article already exists. Skipping.');
+                }
+
+                // return { status: true, user: data };
+            } catch (err) {
+                console.error('An error occurred:', err);
+                // return { status: false, error: err.message };
+            }
+        }
+    }
+    catch (error) {
+        console.error('Error connecting to MongoDB:', error);
+    }
 }
 
 scrapeData('/').then(() => {
