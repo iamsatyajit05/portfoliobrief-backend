@@ -49,20 +49,30 @@ async function scrapeData(para) {
 
             for (const element of listToStoryElements) {
                 const headlineSections = await element.$$('.headlineSec');
-
-                for (const headlineSection of headlineSections) {
+                const images=await element.$$('img');
+                for (let i = 0; i < headlineSections.length; i++) {
+                    const headlineSection = headlineSections[i];
+                    const image = images[i]; // Get the corresponding image element
+            
                     const headline = await headlineSection.$('.headline');
                     const linkElement = await headline.$('a');
                     const innerText = await headline.evaluate(el => el.innerText);
                     const href = await linkElement.evaluate(a => a.getAttribute('href'));
-
+            
                     const timeParent = await headlineSection.$('span > span[data-updatedtime]');
                     const timeAttribute = await timeParent.evaluate(span => span.getAttribute('data-updatedtime'));
-
+            
+                    let imageUrl = null; // Initialize imageUrl to null
+            
+                    if (image) {
+                        imageUrl = await page.evaluate((img) => img.getAttribute('data-src'), image);
+                    }
+            
                     extractedData.push({
                         innerText: innerText,
                         href: "https://www.livemint.com" + href,
-                        newsTime: timeAttribute
+                        newsTime: timeAttribute,
+                        imageUrl:imageUrl
                     });
                 }
             }
@@ -90,7 +100,8 @@ async function saveToDB(newsArr) {
             innerText: String,
             href: String,
             newsTime: Date,
-            tag: String
+            tag: String,
+            imageUrl:String
         });
 
         const News = mongoose.model('news', newsSchema);
@@ -104,7 +115,8 @@ async function saveToDB(newsArr) {
                         innerText: element.innerText,
                         href: element.href,
                         newsTime: element.newsTime,
-                        tag: element.tag
+                        tag: element.tag,
+                        imageUrl:element.imageUrl
                     });
 
                     const data = await newsItem.save();
@@ -146,6 +158,7 @@ scrapeData('/').then(() => {
 
             console.log('Extracted Data:', filteredData);
             console.log('Total News:', filteredData.length);
+            
 
             saveToDB(filteredData);
         })
