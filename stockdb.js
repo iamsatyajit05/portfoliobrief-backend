@@ -131,26 +131,28 @@ async function stockSaveToDB(stocksList, email) {
     }
 }
 
+
+
 async function fetchedNews() {
     try {
         const client = await mongoDBInstance.getClient();
 
-        const url = MONGODB_URI;
         const dbName = 'test';
-        const collectionName = 'new.s';
+        const collectionName = 'news';
 
         const db = client.db(dbName);
         const collection = db.collection(collectionName);
 
-        const documents = await collection.find({}).toArray();
+        //const documents = await collection.find({}).toArray();
 
         const filteredData = await collection.find({}).toArray();
-        
+      
         return filteredData;
     } catch (error) {
         console.error('Error:', error);
     }
 }
+
 
 async function savePreference({ recieveNewsText, newsTypeText, email }) {
     try {

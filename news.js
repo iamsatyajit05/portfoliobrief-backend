@@ -52,8 +52,7 @@ async function scrapeData(para) {
                 const images=await element.$$('img');
                 for (let i = 0; i < headlineSections.length; i++) {
                     const headlineSection = headlineSections[i];
-                    const image = images[i]; // Get the corresponding image element
-            
+                    const image = images[i]; 
                     const headline = await headlineSection.$('.headline');
                     const linkElement = await headline.$('a');
                     const innerText = await headline.evaluate(el => el.innerText);
@@ -62,7 +61,7 @@ async function scrapeData(para) {
                     const timeParent = await headlineSection.$('span > span[data-updatedtime]');
                     const timeAttribute = await timeParent.evaluate(span => span.getAttribute('data-updatedtime'));
             
-                    let imageUrl = null; // Initialize imageUrl to null
+                    let imageUrl = null;
             
                     if (image) {
                         imageUrl = await page.evaluate((img) => img.getAttribute('data-src'), image);
