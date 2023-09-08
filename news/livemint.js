@@ -4,7 +4,8 @@ require('dotenv').config();
 const puppeteer = require("puppeteer");
 const mongoose = require('mongoose');
 const MONGODB_URI = process.env.MONGODB_URI;
-const companies = require('./companyList'); const { mongoDBInstance } = require('./mongodb');
+const companies = require('../companyList'); 
+const { mongoDBInstance } = require('../mongodb');
 
 mongoose.connect(MONGODB_URI, {
     useNewUrlParser: true,

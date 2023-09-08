@@ -21,7 +21,9 @@ function structureEmail(data) {
         const news = `
         <div style="margin: 0; padding: 0; font-family: Arial, sans-serif; display: flex; gap: 4px; padding-top: 18px;">
                 <div class="news" style="margin: 0; padding: 0; font-family: Arial, sans-serif; text-align: left; width: auto;">
-        <a href="${data.news[i].href}" target="_blank">${data.news[i].innerText}</a><span class="time" style="margin: 0; padding: 0; font-family: Arial, sans-serif; font-size: 14px;">${formatTime(data.news[i].newsTime)}</span> • <span class="tag" style="margin: 0; padding: 0; font-family: Arial, sans-serif; font-size: 14px;">${data.news[i].tag}</span>
+        <a href="${data.news[i].href}" target="_blank">${data.news[i].innerText}</a>
+        <div>
+        <span style="margin: 0; padding: 0; font-family: Arial, sans-serif; font-size: 14px;">${formatTime(data.news[i].newsTime)}</span> • <span class="tag" style="margin: 0; padding: 0; font-family: Arial, sans-serif; font-size: 14px;">${data.news[i].tag}</span></div>
         </div>
         <img src="${data.news[i].imgUrl}" alt="News Image" style="margin: 0; padding: 0; font-family: Arial, sans-serif; width: 80px; height: 80px;" width="80" height="80"></div>
         `;
@@ -141,7 +143,9 @@ async function sendData() {
             }
             console.log("this is ", addToEmail);
             const emailContent = await structureEmail(addToEmail)
-            await sendEmail(emailContent)
+            if(emailContent.to === "mannbhattco34@gmail.com"){
+                await sendEmail(emailContent)
+            }
         }
     }
     catch (err) {
