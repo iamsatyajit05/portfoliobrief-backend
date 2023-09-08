@@ -1,5 +1,5 @@
 // Senior Developer: ChatGPT
-// Intern: Satyajit
+// Intern: Satyajit & Mann
 require('dotenv').config();
 const puppeteer = require("puppeteer");
 const mongoose = require('mongoose');
@@ -50,20 +50,29 @@ async function scrapeData(para) {
 
             for (const element of listToStoryElements) {
                 const headlineSections = await element.$$('.headlineSec');
-
-                for (const headlineSection of headlineSections) {
+                const images=await element.$$('img');
+                for (let i = 0; i < headlineSections.length; i++) {
+                    const headlineSection = headlineSections[i];
+                    const image = images[i]; 
                     const headline = await headlineSection.$('.headline');
                     const linkElement = await headline.$('a');
                     const innerText = await headline.evaluate(el => el.innerText);
                     const href = await linkElement.evaluate(a => a.getAttribute('href'));
-
+            
                     const timeParent = await headlineSection.$('span > span[data-updatedtime]');
                     const timeAttribute = await timeParent.evaluate(span => span.getAttribute('data-updatedtime'));
-
+            
+                    let imageUrl = null;
+            
+                    if (image) {
+                        imageUrl = await page.evaluate((img) => img.getAttribute('data-src'), image);
+                    }
+            
                     extractedData.push({
                         innerText: innerText,
                         href: "https://www.livemint.com" + href,
-                        newsTime: timeAttribute
+                        newsTime: timeAttribute,
+                        imageUrl:imageUrl
                     });
                 }
             }
@@ -91,7 +100,8 @@ async function saveToDB(newsArr) {
             innerText: String,
             href: String,
             newsTime: Date,
-            tag: String
+            tag: String,
+            imageUrl:String
         });
 
         const News = mongoose.model('news', newsSchema);
@@ -105,7 +115,8 @@ async function saveToDB(newsArr) {
                         innerText: element.innerText,
                         href: element.href,
                         newsTime: element.newsTime,
-                        tag: element.tag
+                        tag: element.tag,
+                        imageUrl:element.imageUrl
                     });
 
                     const data = await newsItem.save();
@@ -113,11 +124,8 @@ async function saveToDB(newsArr) {
                 } else {
                     console.log('News article already exists. Skipping.');
                 }
-
-                // return { status: true, user: data };
             } catch (err) {
                 console.error('An error occurred:', err);
-                // return { status: false, error: err.message };
             }
         }
     }
@@ -132,14 +140,12 @@ scrapeData('/').then(() => {
             // console.log('Extracted Data:', allNews);
             // console.log('Total News:', allNews.length);
 
-            // Remove news posted before yesterday 9 AM
             const yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
             yesterday.setHours(9, 0, 0, 0);
 
             const filteredData = allNews.filter(item => new Date(item.newsTime) > yesterday);
 
-            // Add tag to news
             filteredData.forEach(news => {
                 const matchingCompany = companies.find(company => news.innerText.includes(company));
                 news.tag = matchingCompany ? matchingCompany : '';
@@ -147,6 +153,7 @@ scrapeData('/').then(() => {
 
             console.log('Extracted Data:', filteredData);
             console.log('Total News:', filteredData.length);
+            
 
             saveToDB(filteredData);
         })
