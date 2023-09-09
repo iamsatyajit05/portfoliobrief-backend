@@ -138,7 +138,7 @@ async function saveToDB(newsArr) {
 
 scrapeData('/').then(() => {
     scrapeData('/page-2').then(() => {
-        scrapeData('/page-3').then(() => {
+       scrapeData('/page-3').then(() => {
             // console.log('Extracted Data:', allNews);
             // console.log('Total News:', allNews.length);
 
