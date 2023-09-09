@@ -1,10 +1,11 @@
 // Senior Developer: ChatGPT
-// Intern: Satyajit
+// Intern: Satyajit & Mann
 require('dotenv').config();
 const puppeteer = require("puppeteer");
 const mongoose = require('mongoose');
 const MONGODB_URI = process.env.MONGODB_URI;
-const companies = require('./companyList'); const { mongoDBInstance } = require('./mongodb');
+const companies = require('../companyList'); 
+const { mongoDBInstance } = require('../mongodb');
 
 mongoose.connect(MONGODB_URI, {
     useNewUrlParser: true,
@@ -123,11 +124,8 @@ async function saveToDB(newsArr) {
                 } else {
                     console.log('News article already exists. Skipping.');
                 }
-
-                // return { status: true, user: data };
             } catch (err) {
                 console.error('An error occurred:', err);
-                // return { status: false, error: err.message };
             }
         }
     }
@@ -142,14 +140,12 @@ scrapeData('/').then(() => {
             // console.log('Extracted Data:', allNews);
             // console.log('Total News:', allNews.length);
 
-            // Remove news posted before yesterday 9 AM
             const yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
             yesterday.setHours(9, 0, 0, 0);
 
             const filteredData = allNews.filter(item => new Date(item.newsTime) > yesterday);
 
-            // Add tag to news
             filteredData.forEach(news => {
                 const matchingCompany = companies.find(company => news.innerText.includes(company));
                 news.tag = matchingCompany ? matchingCompany : '';

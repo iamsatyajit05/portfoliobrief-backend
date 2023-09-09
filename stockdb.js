@@ -131,8 +131,6 @@ async function stockSaveToDB(stocksList, email) {
     }
 }
 
-
-
 async function fetchedNews() {
     try {
         const client = await mongoDBInstance.getClient();
@@ -143,8 +141,6 @@ async function fetchedNews() {
         const db = client.db(dbName);
         const collection = db.collection(collectionName);
 
-        //const documents = await collection.find({}).toArray();
-
         const filteredData = await collection.find({}).toArray();
       
         return filteredData;
@@ -152,7 +148,6 @@ async function fetchedNews() {
         console.error('Error:', error);
     }
 }
-
 
 async function savePreference({ recieveNewsText, newsTypeText, email }) {
     try {
