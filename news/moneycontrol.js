@@ -7,6 +7,8 @@ const companies = require('../companyList');
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
+
+
 mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -17,15 +19,15 @@ mongoose.connect(MONGODB_URI, {
 });
 
 const News = mongoose.model('news', new mongoose.Schema({
-  headline: String,
-  link: String,
-  datetime: String,
+  innerText: String,
+  href: String,
+  newsTime: String,
   imageUrl: String,
   tag: String, // Add tag field to the schema
 }));
 
 async function scrapeMoneyControlNews() {
-  const browser = await puppeteer.launch({ headless: false });
+  const browser = await puppeteer.launch({ headless:true });
   const page = await browser.newPage();
   const url = 'https://www.moneycontrol.com/news/tags/companies.html';
   
@@ -39,21 +41,21 @@ async function scrapeMoneyControlNews() {
       const newsList = Array.from(document.querySelectorAll('.clearfix'));
 
       return newsList.map((newsItem) => {
-        const headlineElement = newsItem.querySelector('h2 a');
-        const linkElement = newsItem.querySelector('h2 a');
-        const datetimeElement = newsItem.querySelector('span');
+        const innerTextElement = newsItem.querySelector('h2 a');
+        const hrefElement = newsItem.querySelector('h2 a');
+        const newsTimeElement = newsItem.querySelector('span');
         const imageElement = newsItem.querySelector('img');
 
-        const headline = headlineElement ? headlineElement.innerText : null;
-        const link = linkElement ? linkElement.href : null;
-        const datetime = datetimeElement ? datetimeElement.innerText : null;
+        const innerText = innerTextElement ? innerTextElement.innerText : null;
+        const href = hrefElement ? hrefElement.href : null;
+        const newsTime = newsTimeElement ? newsTimeElement.innerText : null;
         const imageUrl = imageElement ? imageElement.getAttribute('data-src') : null;
 
-        return { headline, link, datetime, imageUrl };
+        return { innerText, href,newsTime , imageUrl };
       });
     });
 
-    const validNewsData = newsData.filter(item => item.headline && item.link && item.datetime && item.imageUrl);
+    const validNewsData = newsData.filter(item => item.innerText && item.href && item.newsTime && item.imageUrl);
 
     return validNewsData;
   } catch (error) {
@@ -67,10 +69,10 @@ async function saveMoneyControlNewsToDB(newsArr) {
   try {
     for (const element of newsArr) {
       try {
-        const existingNews = await News.findOne({ headline: element.headline });
+        const existingNews = await News.findOne({ innerText: element.innerText });
 
         if (!existingNews) {
-          const matchingCompany = companies.find(company => element.headline.includes(company));
+          const matchingCompany = companies.find(company => element.innerText.includes(company));
           element.tag = matchingCompany ? matchingCompany : '';
 
           const newsItem = new News(element);
