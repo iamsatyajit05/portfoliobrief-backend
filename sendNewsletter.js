@@ -18,12 +18,31 @@ function structureEmail(data) {
     let newsContent = "";
 
     for (let i = 0; i < data.news.length; i++) {
+        let sourceContent = null;
+
+                        if (newsItem.href && newsItem.href.includes("https://www.livemint.com")) {
+                            sourceContent = (
+                                <span className='text-gray-500 text-sm mt-2'>
+                                    • LiveMint
+                                </span>
+                            );
+                        }
+                        else if (newsItem.href && newsItem.href.includes("https://www.moneycontrol.com")) {
+                            sourceContent = (
+                                <span className='text-gray-500 text-sm mt-2'>
+                                    • MoneyControl
+                                </span>
+                            );
+                        }
+
         const news = `
         <div style="margin: 0; padding: 0; font-family: Arial, sans-serif; display: flex; gap: 4px; padding-top: 18px;">
                 <div class="news" style="margin: 0; padding: 0; font-family: Arial, sans-serif; text-align: left; width: auto;">
         <a href="${data.news[i].href}" target="_blank">${data.news[i].innerText}</a><p></p>
         <div>
-        <span style="margin: 0; padding: 0; font-family: Arial, sans-serif; font-size: 14px;">${formatTime(data.news[i].newsTime)}</span> • <span class="tag" style="margin: 0; padding: 0; font-family: Arial, sans-serif; font-size: 14px;">${data.news[i].tag}</span></div>
+        <span style="margin: 0; padding: 0; font-family: Arial, sans-serif; font-size: 14px;">${formatTime(data.news[i].newsTime)}</span> • <span class="tag" style="margin: 0; padding: 0; font-family: Arial, sans-serif; font-size: 14px;">${data.news[i].tag}</span>
+        • <span class="tag" style="margin: 0; padding: 0; font-family: Arial, sans-serif; font-size: 14px;">${sourceContent}</span>
+        </div>
         </div>
         <img src="${data.news[i].imageUrl}" alt="News Image" style="margin: 0; padding: 0; font-family: Arial, sans-serif; width: 80px; height: 80px;" width="80" height="80"></div>
         `;
