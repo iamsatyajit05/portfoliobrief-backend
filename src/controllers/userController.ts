@@ -1,45 +1,52 @@
 import { Request, Response } from 'express';
-import userService from '../services/userService';
+import UserService from '../services/userService';
+import { error } from 'console';
 
 class UserController {
-  async register(req: Request, res: Response) {
-    const { name, email, password } = req.body;
-    try {
-      const user = await userService.register(name, email, password);
-      res.status(201).json(user);
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
-    }
-  }
+  // Method to handle the request to fetch a user by Google ID from request body
+  async getUserById(req: Request, res: Response): Promise<void> {
+    const { googleId } = req.body;
 
-  async login(req: Request, res: Response) {
-    const { email, password } = req.body;
-    try {
-      const token = await userService.login(email, password);
-      if (!token) {
-        return res.status(401).json({ error: 'Invalid email or password' });
-      }
-      res.json({ token });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+    if (!googleId) {
+      res.status(400).json({ message: 'Google ID is required' });
+      return;
     }
-  }
 
-  async fetchUserById(req: Request, res: Response) {
     try {
-      const userId = req.params.id; // Assuming the user ID is passed as a URL parameter
-      const user = await userService.fetchUserById(userId);
+      const user = await UserService.fetchUserById(googleId);
 
       if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+        res.status(404).json({ message: 'User not found' });
+        return;
       }
 
-      res.json(user);
+      res.status(200).json(user);
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      res.status(500).json({ message: 'Error fetching user', error: error });
+    }
+  }
+
+  // Method to handle the request to save a user
+  async saveUser(req: Request, res: Response): Promise<void> {
+    try {
+      const userInfo = req.body;
+
+
+      const user = await UserService.saveUser(userInfo);
+
+      res.status(201).json(user);
+    } catch (error) {
+      res.status(500).json({ message: 'Error saving user', error: error});
+    }
+  }
+  async reconfigureOrCreateUserStocks(req: Request, res: Response){
+    const { googleId, stocks } = req.body;
+
+    try {
+      const subscription = await UserService.reconfigureOrCreateUserStocks(googleId, stocks);
+      res.status(200).json(subscription);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to reconfigure or create user stocks', error: error });
     }
   }
 }

@@ -1,48 +1,26 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface UserDocument extends Document {
-  id: number;
+  googleId: string;
   name: string;
   email: string;
-  phoneNumber: string;
-  type:
-    | 'admin'
-    | 'sales'
-    | 'support'
-    | 'manager'
-    | 'finance'
-    | 'marketing'
-    | 'user';
-  status: 'active' | 'inactive';
-  password: string;
+  emailVerified: boolean;
+  picture: string;
+  providerId: string;
 }
 
 const userSchema = new Schema(
   {
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    phone: { type: String },
-    type: {
-      type: String,
-      enum: [
-        'admin',
-        'sales',
-        'support',
-        'manager',
-        'finance',
-        'marketing',
-        'user',
-      ],
-      default: 'user',
-    },
-    status: {
-      type: String,
-      enum: ['active', 'inactive'],
-      default: 'active',
-    },
-    password: { type: String, required: true },
+    googleId: { type: String, required: true, unique: true }, // `sub` field from profile
+    name: { type: String, required: true }, // `name` field from profile
+    email: { type: String, required: true, unique: true }, // `email` field from profile
+    emailVerified: { type: Boolean, required: true }, // `email_verified` field from profile
+    picture: { type: String, required: true }, // `picture` field from profile
+    providerId: { type: String, required: true }, // `providerId` from additionalUserInfo
   },
-  { timestamps: true },
+  { timestamps: true } // Automatically manage createdAt and updatedAt fields
 );
 
-export default mongoose.model<UserDocument>('User', userSchema);
+const User = mongoose.model<UserDocument>('AppUser', userSchema);
+
+export default User;

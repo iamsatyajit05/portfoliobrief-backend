@@ -6,6 +6,7 @@ export interface NewsDocument extends Document {
   summary: string;
   articleUrl: string;
   category: string[];
+  company: string[];
   tags: string[];
   publishTime: Date;
   imageUrl: string;
@@ -17,6 +18,7 @@ const newsSchema = new Schema(
     summary: { type: String },
     articleUrl: { type: String },
     category: [{ type: String }],
+    company: [{ type: String }],
     tags: [{ type: String }],
     publishTime: { type: Date },
     imageUrl: { type: String },
@@ -24,4 +26,4 @@ const newsSchema = new Schema(
   { timestamps: true }
 );
 
-export default mongoose.model<NewsDocument>('News', newsSchema);
+export default mongoose.model<NewsDocument>('Newsarticle', newsSchema);

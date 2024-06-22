@@ -3,43 +3,70 @@ import config from '../config';
 import User, { UserDocument } from '../models/userModel';
 import { comparePasswords, hashPassword } from '../utils/bcryptUtils';
 import { generateToken } from '../utils/token';
-
+import { StockSubscriptionDocument } from '../models/stockSubscriptionModel';
+import StockSubscription from '../models/stockSubscriptionModel';
+import mongoose from 'mongoose';
 class UserService {
-  async register(
-    name: string,
-    email: string,
-    password: string,
-  ): Promise<UserDocument> {
-    // Hash the password before saving it to the database
-    const hashedPassword = await hashPassword(password);
-    console.log(name, email, hashedPassword);
-
-    const user = await User.create({ name, email, password: hashedPassword });
-    return user;
-  }
-
-  async login(email: string, password: string): Promise<string | null> {
-    const user = await User.findOne({ email });
-    if (!user) {
-      return null; // User not found
-    }
-
-    const isPasswordValid = await comparePasswords(password, user.password);
-    if (!isPasswordValid) {
-      return null; // Invalid password
-    }
-
-    const token = generateToken({ userId: user.id });
-    return token;
-  }
-
-  async fetchUserById(userId: string): Promise<UserDocument | null> {
+  // Method to fetch user by Google ID
+  async reconfigureOrCreateUserStocks(googleId: string, stocks: string[]): Promise<StockSubscriptionDocument> {
     try {
-      const user = await User.findById(userId);
+      const subscription = await StockSubscription.findOneAndUpdate(
+        { userId:googleId },
+        { stocks }, // Replace the existing stocks array with the new one
+        { new: true, upsert: true }
+      );
+      return subscription;
+    } catch (error) {
+      console.error('Error reconfiguring or creating user stocks:', error);
+      throw error;
+    }
+  }
+  async fetchUserById(googleId: string): Promise<UserDocument | null> {
+    try {
+      const user = await User.findOne({ googleId }).exec();
+
+      if (!user) {
+        console.log('User not found');
+        return null;
+      }
+
       return user;
     } catch (error) {
-      console.error(error);
-      return null;
+      console.error('Error fetching user by ID:', error);
+      throw new Error('Failed to fetch user by ID');
+    }
+  }
+
+  // Method to save a user
+  async saveUser(userInfo: any): Promise<UserDocument> {
+    try {
+
+      const userDetails: Partial<UserDocument> = {
+        googleId: userInfo.googleId,
+        name: userInfo.name,
+        email: userInfo.email,
+        emailVerified: userInfo.emailVerified,
+        picture: userInfo.picture,
+        providerId: userInfo.providerId,
+      };
+
+      // Check if the user already exists
+      let existingUser = await User.findOne({ googleId: userInfo.googleId });
+
+      if (existingUser) {
+        // Update existing user 
+        existingUser = Object.assign(existingUser, userDetails);
+        const updatedUser = await existingUser.save();
+        return updatedUser;
+      } else {
+        // Create a new user
+        console.log('helo')
+        let savedUser = await User.create(userDetails);
+        return savedUser;
+      }
+    } catch (error) {
+      console.error('Error saving user:', error);
+      throw new Error('Failed to save user');
     }
   }
 }
