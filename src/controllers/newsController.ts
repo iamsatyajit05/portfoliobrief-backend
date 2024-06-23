@@ -28,22 +28,30 @@ class NewsController {
 
 
   async fetchNews(req: Request, res: Response) {
-    const { categories, page, limit } = req.body;
     try {
+      const categories = req.query.categories as string[] | undefined;
+      const page = +(req.query.page || 1);
+      const limit = +(req.query.limit || 10);
+
       const news = await newsService.fetchNews(categories, page, limit);
       res.json({ news });
     } catch (error) {
-      console.error(error);
+      console.error('Error fetching news:', error);
       res.status(500).json({ error: 'Internal Server Error' });
     }
   }
-  async fetchNewsByStocks(req: Request,res: Response){
-    const {userId, page, limit} = req.body;
+
+  async fetchNewsByStocks(req: Request, res: Response) {
     try {
+      const userId = req.query.userId as string;
+      const page = +(req.query.page || 1);
+      const limit = +(req.query.limit || 10);
+
       const news = await newsService.fetchNewsByStocks(userId, page, limit);
       res.status(200).json(news);
     } catch (error) {
-      res.status(500).json({ message: 'Failed to fetch news by stocks', error: error});
+      console.error('Error fetching news by stocks:', error);
+      res.status(500).json({ message: 'Failed to fetch news by stocks', error: error });
     }
   }
 }

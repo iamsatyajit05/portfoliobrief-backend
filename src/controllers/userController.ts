@@ -25,7 +25,16 @@ class UserController {
       res.status(500).json({ message: 'Error fetching user', error: error });
     }
   }
+  async reconfigureOrCreateUserStocks(req: Request, res: Response){
+    const { googleId, stocks } = req.body;
 
+    try {
+      const subscription = await UserService.reconfigureOrCreateUserStocks(googleId, stocks);
+      res.status(200).json(subscription);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to reconfigure or create user stocks', error: error });
+    }
+  }
   // Method to handle the request to save a user
   async saveUser(req: Request, res: Response): Promise<void> {
     try {
@@ -39,16 +48,7 @@ class UserController {
       res.status(500).json({ message: 'Error saving user', error: error});
     }
   }
-  async reconfigureOrCreateUserStocks(req: Request, res: Response){
-    const { googleId, stocks } = req.body;
 
-    try {
-      const subscription = await UserService.reconfigureOrCreateUserStocks(googleId, stocks);
-      res.status(200).json(subscription);
-    } catch (error) {
-      res.status(500).json({ message: 'Failed to reconfigure or create user stocks', error: error });
-    }
-  }
 }
 
 export default new UserController();
