@@ -24,7 +24,7 @@ const authorize = (allowedRoles: string[], checkDb = false) => {
     if (checkDb) {
       try {
         const user = await User.findById(req.userPayload.id);
-        if (!user || user.status !== 'active') {
+        if (!user ) {
           return res.sendStatus(403);
         }
         req.user = user;
