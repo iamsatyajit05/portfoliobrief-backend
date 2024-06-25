@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import newsService from '../services/newsService';
-
+import stocks from '../models/stocks';
+import { IStock } from '../models/stocks';
 class NewsController {
  
 
@@ -54,6 +55,45 @@ class NewsController {
       res.status(500).json({ message: 'Failed to fetch news by stocks', error: error });
     }
   }
-}
+  async searchNews(req: Request, res: Response) {
+    const { searchText } = req.query;
+    const page = +(req.query.page || 1);
+    const limit = +(req.query.limit || 10);
 
+    try {
+      if (typeof searchText !== 'string' || searchText.trim() === '') {
+        return res.status(400).json({ message: 'Invalid search text provided' });
+      }
+
+      const newsArticles = await newsService.searchNewsByTitle(searchText, page, limit);
+
+      res.status(200).json(newsArticles);
+    } catch (error) {
+      console.error('Error searching news:', error);
+      res.status(500).json({ message: 'Failed to search news articles', error: error });
+    }
+  }
+  async fetchStockList(req: Request, res: Response){
+    try{
+      const stocklist = await newsService.fetchStockList();
+      res.status(200).json(stocklist);
+    
+    }
+    catch (error) {
+      console.error('Error searching news:', error);
+      res.status(500).json({ message: 'Failed to search news articles', error: error });
+    }
+
+  }
+  async insertStocks(req: Request, res: Response): Promise<void> {
+    try {
+      const stocksData = req.body as IStock[];
+      const insertedStocks = await newsService.insertStocks(stocksData);
+      res.status(201).json(insertedStocks);
+    } catch (error) {
+      console.error('Error in insertStocks controller:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  }
+}
 export default new NewsController();

@@ -48,6 +48,27 @@ class UserController {
       res.status(500).json({ message: 'Error saving user', error: error});
     }
   }
+  async fetchUserStocks(req: Request, res: Response) {
+    console.log(req.params)
+    const { googleId } = req.params;
+  
+    try {
+      if (!googleId) {
+        return res.status(400).json({ message: 'Google ID is required' });
+      }
+  
+      const userStocks = await UserService.fetchUserStocks(googleId);
+  
+      if (!userStocks) {
+        return res.status(404).json({ message: 'No stock subscriptions found for the user' });
+      }
+  
+      res.status(200).json(userStocks);
+    } catch (error) {
+      console.error('Error fetching user stocks:', error);
+      res.status(500).json({ message: 'Failed to fetch user stocks', error: error });
+    }
+  }
 
 }
 

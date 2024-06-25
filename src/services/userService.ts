@@ -69,6 +69,15 @@ class UserService {
       throw new Error('Failed to save user');
     }
   }
+  async fetchUserStocks(userId: string): Promise<StockSubscriptionDocument | null> {
+    try {
+      const subscription = await StockSubscription.findOne({ userId });
+      return subscription;
+    } catch (error) {
+      console.error('Error fetching user stocks:', error);
+      throw error;
+    }
+  }
 }
 
 export default new UserService();

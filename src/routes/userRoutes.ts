@@ -9,5 +9,5 @@ router.post('/fetchById', UserController.getUserById);
 router.post('/save', UserController.saveUser);
 
 router.post('/stocks', UserController.reconfigureOrCreateUserStocks)
-
+router.get('/userStocks/:googleId', UserController.fetchUserStocks);
 export default router;
