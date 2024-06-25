@@ -7,7 +7,6 @@ import connectToDatabase from './config/dbConfig';
 import errorHandler from './middlewares/errorHandler';
 import config from './config';
 const app: Express = express();
-console.log('in app.ts')
 app.use(cors());
 app.use(helmet());
 app.use(express.json({ limit: '5mb' }));
@@ -29,7 +28,6 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 const startServer = async () => {
   try {
     await connectToDatabase();
-    console.log('startserver',config.port);
     app.listen(config.port, () => {
       console.log(
         `⚡️[server]: Server is running at http://localhost:${config.port}`
